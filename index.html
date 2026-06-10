@@ -95,6 +95,23 @@
             cursor: pointer;
         }
 
+        /* NOVO: Botão de Estatísticas */
+        .btn-stats {
+            background-color: var(--twitch-purple);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .btn-stats:hover {
+            background-color: var(--twitch-purple-hover);
+        }
+
         .sort-select {
             background-color: var(--bg-color);
             color: var(--text-main);
@@ -203,6 +220,146 @@
             padding: 50px;
         }
 
+        /* NOVO: Modal / Pop-up */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(3px);
+        }
+
+        .modal-content {
+            background-color: var(--navbar-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 25px;
+            width: 100%;
+            max-width: 600px;
+            position: relative;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.5);
+            animation: modalFadeIn 0.3s ease;
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .modal-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--twitch-purple);
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .close-modal:hover {
+            color: var(--text-main);
+        }
+
+        .modal-body {
+            display: flex;
+            gap: 30px;
+        }
+
+        .stats-left {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .stat-box {
+            background-color: var(--bg-color);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .stats-right {
+            flex: 1.5;
+            background-color: var(--bg-color);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .leaderboard-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .leaderboard-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .leaderboard-item {
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+            padding: 6px 10px;
+            background-color: var(--card-bg);
+            border-radius: 6px;
+        }
+
+        .lb-rank {
+            font-weight: 700;
+            color: var(--twitch-purple-hover);
+            width: 25px;
+        }
+
+        .lb-name {
+            flex: 1;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .lb-count {
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
         /* Responsive */
         @media (max-width: 900px) {
             .search-container {
@@ -215,6 +372,9 @@
                 padding-left: 0;
                 padding-top: 10px;
                 flex-wrap: wrap;
+            }
+            .modal-body {
+                flex-direction: column;
             }
         }
     </style>
@@ -239,6 +399,9 @@
             </div>
         </div>
 
+        <!-- NOVO: Botão de Estatísticas -->
+        <button class="btn-stats" id="btnStats">Estatísticas</button>
+
         <select class="sort-select" id="sortSelect">
             <option value="default">Ordenação Padrão</option>
             <option value="views-desc">Mais Visualizações</option>
@@ -254,12 +417,42 @@
         </div>
     </main>
 
+    <!-- NOVO: Modal de Estatísticas -->
+    <div class="modal-overlay" id="statsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Estatísticas Gerais</div>
+                <button class="close-modal" id="closeStats">&times;</button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="stats-left">
+                    <div class="stat-box">
+                        <div class="stat-label">Total de Clipes</div>
+                        <div class="stat-value" id="valTotalClips">0</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Tempo Total de Clipes</div>
+                        <div class="stat-value" id="valTotalTime">00:00:00</div>
+                    </div>
+                </div>
+
+                <div class="stats-right">
+                    <div class="leaderboard-title">Top 10 Clippers</div>
+                    <ul class="leaderboard-list" id="leaderboardList">
+                        <!-- Itens do rank serão inseridos via JS -->
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         const JSON_URL = 'https://gist.githubusercontent.com/ItsOnlyMe360/3d1b7ce8f62b6ada45c524accbdfaada/raw/';
         
         let allClips = [];
 
-        // Elementos
+        // Elementos principais
         const clipGrid = document.getElementById('clipGrid');
         const searchInput = document.getElementById('searchInput');
         const checkNome = document.getElementById('checkNome');
@@ -267,12 +460,21 @@
         const checkCat = document.getElementById('checkCat');
         const sortSelect = document.getElementById('sortSelect');
 
-        // Funções para pegar os dados do JSON não importando se tem letra maiuscula ou acento
+        // Elementos do Modal
+        const btnStats = document.getElementById('btnStats');
+        const statsModal = document.getElementById('statsModal');
+        const closeStats = document.getElementById('closeStats');
+        const valTotalClips = document.getElementById('valTotalClips');
+        const valTotalTime = document.getElementById('valTotalTime');
+        const leaderboardList = document.getElementById('leaderboardList');
+
+        // Funções para pegar os dados do JSON com flexibilidade
         const getViewsStr = (clip) => clip.visualizacoes || clip.visualizações || clip.Visualizações || clip.Visualizacoes || clip.views || "0 visualizações";
         const getDateStr = (clip) => clip.data || clip.Data || clip.date || clip.Date || "Data desconhecida";
         const getNameStr = (clip) => clip.nome_do_clipe || clip.Nome || clip.title || "";
-        const getUserStr = (clip) => clip.user_que_fez || clip.User || clip.creator || "";
+        const getUserStr = (clip) => clip.user_que_fez || clip.User || clip.creator || "Desconhecido";
         const getCatStr = (clip) => clip.categoria_do_clipe || clip.Categoria || clip.game || "";
+        const getDurationStr = (clip) => clip.duracao_do_clipe || clip.duracao || "0:00";
 
         // Busca o JSON
         async function fetchClips() {
@@ -321,6 +523,89 @@
             return weight; 
         }
 
+        // NOVO: Transforma string "MM:SS" ou "HH:MM:SS" em total de segundos
+        function getSecondsFromDuration(durStr) {
+            if (!durStr) return 0;
+            let parts = durStr.split(':').map(Number);
+            if (parts.length === 2) return (parts[0] * 60) + parts[1];
+            if (parts.length === 3) return (parts[0] * 3600) + (parts[1] * 60) + parts[2];
+            return 0;
+        }
+
+        // NOVO: Transforma segundos em formato HHh MMm SSs
+        function formatTotalTime(totalSeconds) {
+            let h = Math.floor(totalSeconds / 3600);
+            let m = Math.floor((totalSeconds % 3600) / 60);
+            let s = totalSeconds % 60;
+            
+            if (h > 0) return `${h}h ${m}m ${s}s`;
+            if (m > 0) return `${m}m ${s}s`;
+            return `${s}s`;
+        }
+
+        // NOVO: Calcula e exibe as estatísticas no Modal
+        function calculateAndShowStats() {
+            // 1. Total de Clipes Mapeados
+            valTotalClips.textContent = allClips.length;
+
+            // 2. Soma de tempo total
+            let totalSeconds = 0;
+            let clippersCount = {};
+
+            allClips.forEach(clip => {
+                // Soma tempo
+                totalSeconds += getSecondsFromDuration(getDurationStr(clip));
+                
+                // Conta clipes por usuário
+                let user = getUserStr(clip).trim();
+                if (user) {
+                    clippersCount[user] = (clippersCount[user] || 0) + 1;
+                }
+            });
+
+            valTotalTime.textContent = formatTotalTime(totalSeconds);
+
+            // 3. Top 10 Clippers
+            // Transforma o objeto em Array para ordenar: [ ["scott", 5], ["marcos", 2] ]
+            let sortedClippers = Object.entries(clippersCount)
+                .sort((a, b) => b[1] - a[1]) // Ordena do maior pro menor
+                .slice(0, 10); // Pega apenas os 10 primeiros
+
+            leaderboardList.innerHTML = '';
+            
+            if(sortedClippers.length === 0) {
+                leaderboardList.innerHTML = `<li class="leaderboard-item">Nenhum dado encontrado</li>`;
+            } else {
+                sortedClippers.forEach((clipper, index) => {
+                    const li = document.createElement('li');
+                    li.className = 'leaderboard-item';
+                    li.innerHTML = `
+                        <span class="lb-rank">${index + 1}</span>
+                        <span class="lb-name">${clipper[0]}</span>
+                        <span class="lb-count">${clipper[1]} clipes</span>
+                    `;
+                    leaderboardList.appendChild(li);
+                });
+            }
+        }
+
+        // Lógica de abrir/fechar o Modal
+        btnStats.addEventListener('click', () => {
+            calculateAndShowStats();
+            statsModal.style.display = 'flex';
+        });
+
+        closeStats.addEventListener('click', () => {
+            statsModal.style.display = 'none';
+        });
+
+        // Fechar clicando fora da caixa do modal
+        window.addEventListener('click', (e) => {
+            if (e.target === statsModal) {
+                statsModal.style.display = 'none';
+            }
+        });
+
         // Filtra, ordena e desenha na tela
         function renderAndFilterClips() {
             const searchTerm = searchInput.value.toLowerCase();
@@ -357,9 +642,8 @@
             }
 
             filteredClips.forEach(clip => {
-                // Prevenção extra para o restante dos campos
                 const thumb = clip.thumb_do_clipe || "https://via.placeholder.com/1920x1080/2b2b2f/efeff1?text=Sem+Thumbnail";
-                const duracao = clip.duracao_do_clipe || "--:--";
+                const duracao = getDurationStr(clip);
                 const link = clip.link || "#";
 
                 const card = document.createElement('a');
@@ -383,12 +667,14 @@
             });
         }
 
+        // Listeners de filtro e pesquisa
         searchInput.addEventListener('input', renderAndFilterClips);
         checkNome.addEventListener('change', renderAndFilterClips);
         checkUser.addEventListener('change', renderAndFilterClips);
         checkCat.addEventListener('change', renderAndFilterClips);
         sortSelect.addEventListener('change', renderAndFilterClips);
 
+        // Init
         fetchClips();
     </script>
 </body>
