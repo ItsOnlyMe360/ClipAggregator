@@ -15,6 +15,7 @@
             --twitch-purple: #9146ff;
             --twitch-purple-hover: #a970ff;
             --border-color: #3a3a3d;
+            --success-green: #2ea043;
         }
 
         * {
@@ -53,12 +54,19 @@
             letter-spacing: -0.5px;
         }
 
+        .search-group {
+            display: flex;
+            align-items: stretch;
+            gap: 5px; 
+            flex: 1;
+            max-width: 850px;
+        }
+
         .search-container {
             display: flex;
             align-items: center;
             gap: 15px;
             flex: 1;
-            max-width: 800px;
             background-color: var(--bg-color);
             padding: 10px 20px;
             border-radius: 8px;
@@ -72,6 +80,46 @@
             color: var(--text-main);
             font-size: 1rem;
             outline: none;
+        }
+
+        /* NOVO: Contador Cinza de Clipes Encontrados */
+        .clip-count-span {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            align-self: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            white-space: nowrap;
+            margin-left: 8px;
+            pointer-events: none;
+        }
+
+        .btn-reload {
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            border-radius: 8px;
+            padding: 0 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+        }
+
+        .btn-reload:hover {
+            border-color: var(--text-muted);
+        }
+
+        .btn-reload svg {
+            transition: transform 0.8s cubic-bezier(0.65, 0, 0.35, 1);
+            transform-origin: center;
+        }
+
+        .btn-reload.success {
+            background-color: var(--success-green);
+            border-color: var(--success-green);
+            color: white;
         }
 
         .filters {
@@ -95,7 +143,6 @@
             cursor: pointer;
         }
 
-        /* NOVO: Botão de Estatísticas */
         .btn-stats {
             background-color: var(--twitch-purple);
             color: white;
@@ -140,7 +187,6 @@
             gap: 20px;
         }
 
-        /* Clip Card */
         .card {
             background-color: var(--card-bg);
             border-radius: 10px;
@@ -220,7 +266,7 @@
             padding: 50px;
         }
 
-        /* NOVO: Modal / Pop-up */
+        /* Modal / Pop-up */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -314,14 +360,49 @@
             padding: 15px;
             border-radius: 8px;
             border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* NOVO: Header do Leaderboard com abas (Tabs) */
+        .leaderboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
         }
 
         .leaderboard-title {
             font-size: 1rem;
             font-weight: 600;
-            margin-bottom: 10px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid var(--border-color);
+        }
+
+        .toggle-group {
+            display: flex;
+            gap: 5px;
+            background-color: var(--navbar-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 3px;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .tab-btn.active {
+            background-color: var(--card-bg);
+            color: var(--text-main);
         }
 
         .leaderboard-list {
@@ -329,6 +410,8 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
+            flex: 1;
+            overflow-y: auto;
         }
 
         .leaderboard-item {
@@ -362,6 +445,10 @@
 
         /* Responsive */
         @media (max-width: 900px) {
+            .search-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
             .search-container {
                 flex-direction: column;
                 align-items: stretch;
@@ -373,8 +460,20 @@
                 padding-top: 10px;
                 flex-wrap: wrap;
             }
+            .clip-count-span {
+                margin-left: 0;
+                align-self: center;
+                margin-top: 5px;
+            }
+            .btn-reload {
+                padding: 10px;
+            }
             .modal-body {
                 flex-direction: column;
+            }
+            .leaderboard-header {
+                flex-direction: column;
+                gap: 10px;
             }
         }
     </style>
@@ -384,22 +483,32 @@
     <header>
         <a href="#" class="logo">ClipAggregator</a>
         
-        <div class="search-container">
-            <input type="text" id="searchInput" placeholder="Pesquisar clipes...">
-            <div class="filters">
-                <label class="checkbox-group">
-                    <input type="checkbox" id="checkNome" checked> Nome do Clipe
-                </label>
-                <label class="checkbox-group">
-                    <input type="checkbox" id="checkUser" checked> Usuário
-                </label>
-                <label class="checkbox-group">
-                    <input type="checkbox" id="checkCat" checked> Categoria
-                </label>
+        <div class="search-group">
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="Pesquisar clipes...">
+                <div class="filters">
+                    <label class="checkbox-group">
+                        <input type="checkbox" id="checkNome" checked> Nome do Clipe
+                    </label>
+                    <label class="checkbox-group">
+                        <input type="checkbox" id="checkUser" checked> Usuário
+                    </label>
+                    <label class="checkbox-group">
+                        <input type="checkbox" id="checkCat" checked> Categoria
+                    </label>
+                </div>
             </div>
+            
+            <button id="btnReload" class="btn-reload" title="Atualizar dados">
+                <svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" width="22px" height="22px">
+                    <path d="M 15 3 C 12.031398 3 9.3028202 4.0834384 7.2070312 5.875 A 1.0001 1.0001 0 1 0 8.5058594 7.3945312 C 10.25407 5.9000929 12.516602 5 15 5 C 20.19656 5 24.450989 8.9379267 24.951172 14 L 22 14 L 26 20 L 30 14 L 26.949219 14 C 26.437925 7.8516588 21.277839 3 15 3 z M 4 10 L 0 16 L 3.0507812 16 C 3.562075 22.148341 8.7221607 27 15 27 C 17.968602 27 20.69718 25.916562 22.792969 24.125 A 1.0001 1.0001 0 1 0 21.494141 22.605469 C 19.74593 24.099907 17.483398 25 15 25 C 9.80344 25 5.5490109 21.062074 5.0488281 16 L 8 16 L 4 10 z"/>
+                </svg>
+            </button>
+
+            <!-- NOVO: Onde a contagem de tempo ocioso será exibida -->
+            <span id="clipCountSpan" class="clip-count-span"></span>
         </div>
 
-        <!-- NOVO: Botão de Estatísticas -->
         <button class="btn-stats" id="btnStats">Estatísticas</button>
 
         <select class="sort-select" id="sortSelect">
@@ -417,7 +526,7 @@
         </div>
     </main>
 
-    <!-- NOVO: Modal de Estatísticas -->
+    <!-- Modal de Estatísticas -->
     <div class="modal-overlay" id="statsModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -438,10 +547,15 @@
                 </div>
 
                 <div class="stats-right">
-                    <div class="leaderboard-title">Top 10 Clippers</div>
-                    <ul class="leaderboard-list" id="leaderboardList">
-                        <!-- Itens do rank serão inseridos via JS -->
-                    </ul>
+                    <!-- NOVO: Header interativo do Leaderboard -->
+                    <div class="leaderboard-header">
+                        <div class="leaderboard-title">Top 10</div>
+                        <div class="toggle-group">
+                            <button class="tab-btn active" id="tabClippers">Usuários</button>
+                            <button class="tab-btn" id="tabCats">Categorias</button>
+                        </div>
+                    </div>
+                    <ul class="leaderboard-list" id="leaderboardList"></ul>
                 </div>
             </div>
         </div>
@@ -459,6 +573,9 @@
         const checkUser = document.getElementById('checkUser');
         const checkCat = document.getElementById('checkCat');
         const sortSelect = document.getElementById('sortSelect');
+        const btnReload = document.getElementById('btnReload');
+        const reloadSvg = btnReload.querySelector('svg');
+        const clipCountSpan = document.getElementById('clipCountSpan'); // Texto cinza de delay
 
         // Elementos do Modal
         const btnStats = document.getElementById('btnStats');
@@ -467,8 +584,17 @@
         const valTotalClips = document.getElementById('valTotalClips');
         const valTotalTime = document.getElementById('valTotalTime');
         const leaderboardList = document.getElementById('leaderboardList');
+        
+        // Elementos de aba (tabs)
+        const tabClippers = document.getElementById('tabClippers');
+        const tabCats = document.getElementById('tabCats');
 
-        // Funções para pegar os dados do JSON com flexibilidade
+        // Variáveis de escopo do rank
+        let topClippersData = [];
+        let topCatsData = [];
+        let activeTab = 'clippers'; 
+        let searchTimeout; // Timer do delay de pesquisa
+
         const getViewsStr = (clip) => clip.visualizacoes || clip.visualizações || clip.Visualizações || clip.Visualizacoes || clip.views || "0 visualizações";
         const getDateStr = (clip) => clip.data || clip.Data || clip.date || clip.Date || "Data desconhecida";
         const getNameStr = (clip) => clip.nome_do_clipe || clip.Nome || clip.title || "";
@@ -476,9 +602,12 @@
         const getCatStr = (clip) => clip.categoria_do_clipe || clip.Categoria || clip.game || "";
         const getDurationStr = (clip) => clip.duracao_do_clipe || clip.duracao || "0:00";
 
-        // Busca o JSON
-        async function fetchClips() {
+        async function fetchClips(showLoader = true) {
             try {
+                if (showLoader) {
+                    clipGrid.innerHTML = `<div class="loader">Carregando clipes...</div>`;
+                }
+
                 const response = await fetch(JSON_URL);
                 let data = await response.json();
                 
@@ -488,30 +617,47 @@
                 
                 allClips = data;
                 renderAndFilterClips();
+                return true; 
             } catch (error) {
                 clipGrid.innerHTML = `<div class="loader" style="color: #ff4a4a;">Erro ao carregar os clipes.</div>`;
                 console.error("Erro no fetch:", error);
+                return false; 
             }
         }
 
-        // Converte as strings em números para ordenar as Views
+        let currentRotation = 0;
+
+        btnReload.addEventListener('click', async () => {
+            btnReload.disabled = true;
+            currentRotation += 720;
+            reloadSvg.style.transform = `rotate(${currentRotation}deg)`;
+            
+            const success = await fetchClips(false); 
+            
+            if (success) {
+                btnReload.classList.add('success'); 
+                setTimeout(() => {
+                    btnReload.classList.remove('success');
+                    btnReload.disabled = false;
+                }, 800); 
+            } else {
+                btnReload.disabled = false;
+            }
+        });
+
         function parseViews(viewsStr) {
             if (!viewsStr) return 0;
             let numStr = String(viewsStr).split(' ')[0].replace(',', '.');
             let num = parseFloat(numStr) || 0;
-            
             if (viewsStr.toLowerCase().includes('mil')) num *= 1000;
             if (viewsStr.toLowerCase().includes('mi')) num *= 1000000;
-            
             return num;
         }
 
-        // Converte as strings em peso numérico para ordenar o Tempo
         function parseDateWeight(dateStr) {
             if (!dateStr) return 0;
             let num = parseInt(String(dateStr).replace(/\D/g, '')) || 0;
             let weight = 0;
-            
             let dLow = String(dateStr).toLowerCase();
             if (dLow.includes('ano')) weight = num * 365 * 24 * 60;
             else if (dLow.includes('mês') || dLow.includes('meses')) weight = num * 30 * 24 * 60;
@@ -519,11 +665,9 @@
             else if (dLow.includes('dia')) weight = num * 24 * 60;
             else if (dLow.includes('hora')) weight = num * 60;
             else if (dLow.includes('minuto')) weight = num;
-            
             return weight; 
         }
 
-        // NOVO: Transforma string "MM:SS" ou "HH:MM:SS" em total de segundos
         function getSecondsFromDuration(durStr) {
             if (!durStr) return 0;
             let parts = durStr.split(':').map(Number);
@@ -532,64 +676,62 @@
             return 0;
         }
 
-        // NOVO: Transforma segundos em formato HHh MMm SSs
         function formatTotalTime(totalSeconds) {
             let h = Math.floor(totalSeconds / 3600);
             let m = Math.floor((totalSeconds % 3600) / 60);
             let s = totalSeconds % 60;
-            
             if (h > 0) return `${h}h ${m}m ${s}s`;
             if (m > 0) return `${m}m ${s}s`;
             return `${s}s`;
         }
 
-        // NOVO: Calcula e exibe as estatísticas no Modal
+        // NOVO: Renderiza a lista do leaderboard baseada na aba ativa
+        function drawLeaderboard() {
+            leaderboardList.innerHTML = '';
+            let dataList = activeTab === 'clippers' ? topClippersData : topCatsData;
+
+            if(dataList.length === 0) {
+                leaderboardList.innerHTML = `<li class="leaderboard-item">Nenhum dado encontrado</li>`;
+                return;
+            }
+
+            dataList.forEach((item, index) => {
+                const li = document.createElement('li');
+                li.className = 'leaderboard-item';
+                li.innerHTML = `
+                    <span class="lb-rank">${index + 1}</span>
+                    <span class="lb-name">${item[0]}</span>
+                    <span class="lb-count">${item[1]} clipes</span>
+                `;
+                leaderboardList.appendChild(li);
+            });
+        }
+
         function calculateAndShowStats() {
-            // 1. Total de Clipes Mapeados
             valTotalClips.textContent = allClips.length;
 
-            // 2. Soma de tempo total
             let totalSeconds = 0;
             let clippersCount = {};
+            let catsCount = {};
 
             allClips.forEach(clip => {
-                // Soma tempo
                 totalSeconds += getSecondsFromDuration(getDurationStr(clip));
                 
-                // Conta clipes por usuário
                 let user = getUserStr(clip).trim();
-                if (user) {
-                    clippersCount[user] = (clippersCount[user] || 0) + 1;
-                }
+                if (user) clippersCount[user] = (clippersCount[user] || 0) + 1;
+
+                let cat = getCatStr(clip).trim();
+                if (cat) catsCount[cat] = (catsCount[cat] || 0) + 1;
             });
 
             valTotalTime.textContent = formatTotalTime(totalSeconds);
 
-            // 3. Top 10 Clippers
-            // Transforma o objeto em Array para ordenar: [ ["scott", 5], ["marcos", 2] ]
-            let sortedClippers = Object.entries(clippersCount)
-                .sort((a, b) => b[1] - a[1]) // Ordena do maior pro menor
-                .slice(0, 10); // Pega apenas os 10 primeiros
+            topClippersData = Object.entries(clippersCount).sort((a, b) => b[1] - a[1]).slice(0, 10);
+            topCatsData = Object.entries(catsCount).sort((a, b) => b[1] - a[1]).slice(0, 10);
 
-            leaderboardList.innerHTML = '';
-            
-            if(sortedClippers.length === 0) {
-                leaderboardList.innerHTML = `<li class="leaderboard-item">Nenhum dado encontrado</li>`;
-            } else {
-                sortedClippers.forEach((clipper, index) => {
-                    const li = document.createElement('li');
-                    li.className = 'leaderboard-item';
-                    li.innerHTML = `
-                        <span class="lb-rank">${index + 1}</span>
-                        <span class="lb-name">${clipper[0]}</span>
-                        <span class="lb-count">${clipper[1]} clipes</span>
-                    `;
-                    leaderboardList.appendChild(li);
-                });
-            }
+            drawLeaderboard();
         }
 
-        // Lógica de abrir/fechar o Modal
         btnStats.addEventListener('click', () => {
             calculateAndShowStats();
             statsModal.style.display = 'flex';
@@ -599,14 +741,27 @@
             statsModal.style.display = 'none';
         });
 
-        // Fechar clicando fora da caixa do modal
         window.addEventListener('click', (e) => {
             if (e.target === statsModal) {
                 statsModal.style.display = 'none';
             }
         });
 
-        // Filtra, ordena e desenha na tela
+        // Alternadores (Tabs)
+        tabClippers.addEventListener('click', () => {
+            activeTab = 'clippers';
+            tabClippers.classList.add('active');
+            tabCats.classList.remove('active');
+            drawLeaderboard();
+        });
+
+        tabCats.addEventListener('click', () => {
+            activeTab = 'cats';
+            tabCats.classList.add('active');
+            tabClippers.classList.remove('active');
+            drawLeaderboard();
+        });
+
         function renderAndFilterClips() {
             const searchTerm = searchInput.value.toLowerCase();
             const sortMode = sortSelect.value;
@@ -634,6 +789,18 @@
                 return 0; 
             });
 
+            // NOVO: Lógica dos 3 Segundos Oculta/Exibe texto de contagem
+            clipCountSpan.style.opacity = '0'; // Esconde na hora se alguma tecla for clicada
+            clearTimeout(searchTimeout); // Zera o relógio para começar a contar do 0
+
+            if (searchInput.value.trim() !== '') {
+                // Se ainda tiver texto, ele espera 3 segundos 
+                searchTimeout = setTimeout(() => {
+                    clipCountSpan.textContent = `${filteredClips.length} encontrados`;
+                    clipCountSpan.style.opacity = '1';
+                }, 3000); // 3000ms = 3 segundos
+            }
+
             clipGrid.innerHTML = '';
             
             if (filteredClips.length === 0) {
@@ -651,6 +818,7 @@
                 card.target = "_blank"; 
                 card.className = 'card';
 
+                // NOVO: Trocado "Clipper:" para "Clipado por:" 
                 card.innerHTML = `
                     <div class="card-thumb">
                         <img src="${thumb}" alt="Thumbnail">
@@ -658,7 +826,7 @@
                     </div>
                     <div class="card-content">
                         <div class="card-title">${getNameStr(clip)}</div>
-                        <div class="card-info">Clipper: <strong>${getUserStr(clip)}</strong></div>
+                        <div class="card-info">Clipado por: <strong>${getUserStr(clip)}</strong></div>
                         <div class="card-info">${getViewsStr(clip)} • ${getDateStr(clip)}</div>
                         <div class="card-category">${getCatStr(clip)}</div>
                     </div>
@@ -667,7 +835,6 @@
             });
         }
 
-        // Listeners de filtro e pesquisa
         searchInput.addEventListener('input', renderAndFilterClips);
         checkNome.addEventListener('change', renderAndFilterClips);
         checkUser.addEventListener('change', renderAndFilterClips);
