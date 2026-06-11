@@ -82,7 +82,6 @@
             outline: none;
         }
 
-        /* NOVO: Contador Cinza de Clipes Encontrados */
         .clip-count-span {
             color: var(--text-muted);
             font-size: 0.85rem;
@@ -284,7 +283,9 @@
             border-radius: 12px;
             padding: 25px;
             width: 100%;
-            max-width: 600px;
+            max-width: 650px; /* Aumentei levemente a largura */
+            max-height: 95vh; /* Impede de quebrar a altura em telas menores */
+            overflow-y: auto; /* Adiciona scroll ao pop-up geral caso precise */
             position: relative;
             box-shadow: 0 15px 30px rgba(0,0,0,0.5);
             animation: modalFadeIn 0.3s ease;
@@ -325,31 +326,31 @@
 
         .modal-body {
             display: flex;
-            gap: 30px;
+            gap: 25px;
         }
 
         .stats-left {
-            flex: 1;
+            flex: 1.2;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 12px;
         }
 
         .stat-box {
             background-color: var(--bg-color);
-            padding: 15px;
+            padding: 12px 15px;
             border-radius: 8px;
             border: 1px solid var(--border-color);
         }
 
         .stat-label {
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             color: var(--text-muted);
             margin-bottom: 5px;
         }
 
         .stat-value {
-            font-size: 1.5rem;
+            font-size: 1.35rem;
             font-weight: 700;
             color: var(--text-main);
         }
@@ -364,7 +365,6 @@
             flex-direction: column;
         }
 
-        /* NOVO: Header do Leaderboard com abas (Tabs) */
         .leaderboard-header {
             display: flex;
             justify-content: space-between;
@@ -412,6 +412,26 @@
             gap: 8px;
             flex: 1;
             overflow-y: auto;
+            max-height: 290px; 
+            padding-right: 5px; 
+        }
+
+        .leaderboard-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .leaderboard-list::-webkit-scrollbar-track {
+            background: var(--bg-color);
+            border-radius: 4px;
+        }
+
+        .leaderboard-list::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+
+        .leaderboard-list::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
         }
 
         .leaderboard-item {
@@ -426,7 +446,7 @@
         .lb-rank {
             font-weight: 700;
             color: var(--twitch-purple-hover);
-            width: 25px;
+            width: 30px; 
         }
 
         .lb-name {
@@ -505,7 +525,6 @@
                 </svg>
             </button>
 
-            <!-- NOVO: Onde a contagem de tempo ocioso será exibida -->
             <span id="clipCountSpan" class="clip-count-span"></span>
         </div>
 
@@ -541,15 +560,22 @@
                         <div class="stat-value" id="valTotalClips">0</div>
                     </div>
                     <div class="stat-box">
+                        <div class="stat-label">Total de Clippers</div>
+                        <div class="stat-value" id="valTotalUsers">0</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Total de Categorias</div>
+                        <div class="stat-value" id="valTotalCats">0</div>
+                    </div>
+                    <div class="stat-box">
                         <div class="stat-label">Tempo Total de Clipes</div>
                         <div class="stat-value" id="valTotalTime">00:00:00</div>
                     </div>
                 </div>
 
                 <div class="stats-right">
-                    <!-- NOVO: Header interativo do Leaderboard -->
                     <div class="leaderboard-header">
-                        <div class="leaderboard-title">Top 10</div>
+                        <div class="leaderboard-title">Ranking Geral</div>
                         <div class="toggle-group">
                             <button class="tab-btn active" id="tabClippers">Usuários</button>
                             <button class="tab-btn" id="tabCats">Categorias</button>
@@ -566,7 +592,6 @@
         
         let allClips = [];
 
-        // Elementos principais
         const clipGrid = document.getElementById('clipGrid');
         const searchInput = document.getElementById('searchInput');
         const checkNome = document.getElementById('checkNome');
@@ -575,25 +600,26 @@
         const sortSelect = document.getElementById('sortSelect');
         const btnReload = document.getElementById('btnReload');
         const reloadSvg = btnReload.querySelector('svg');
-        const clipCountSpan = document.getElementById('clipCountSpan'); // Texto cinza de delay
+        const clipCountSpan = document.getElementById('clipCountSpan'); 
 
-        // Elementos do Modal
         const btnStats = document.getElementById('btnStats');
         const statsModal = document.getElementById('statsModal');
         const closeStats = document.getElementById('closeStats');
+        
+        // Elementos do Bloco de Dados Gerais
         const valTotalClips = document.getElementById('valTotalClips');
         const valTotalTime = document.getElementById('valTotalTime');
-        const leaderboardList = document.getElementById('leaderboardList');
+        const valTotalUsers = document.getElementById('valTotalUsers'); // NOVO
+        const valTotalCats = document.getElementById('valTotalCats');   // NOVO
         
-        // Elementos de aba (tabs)
+        const leaderboardList = document.getElementById('leaderboardList');
         const tabClippers = document.getElementById('tabClippers');
         const tabCats = document.getElementById('tabCats');
 
-        // Variáveis de escopo do rank
         let topClippersData = [];
         let topCatsData = [];
         let activeTab = 'clippers'; 
-        let searchTimeout; // Timer do delay de pesquisa
+        let searchTimeout; 
 
         const getViewsStr = (clip) => clip.visualizacoes || clip.visualizações || clip.Visualizações || clip.Visualizacoes || clip.views || "0 visualizações";
         const getDateStr = (clip) => clip.data || clip.Data || clip.date || clip.Date || "Data desconhecida";
@@ -685,7 +711,6 @@
             return `${s}s`;
         }
 
-        // NOVO: Renderiza a lista do leaderboard baseada na aba ativa
         function drawLeaderboard() {
             leaderboardList.innerHTML = '';
             let dataList = activeTab === 'clippers' ? topClippersData : topCatsData;
@@ -708,6 +733,7 @@
         }
 
         function calculateAndShowStats() {
+            // 1. Total Geral de Clipes Mapeados
             valTotalClips.textContent = allClips.length;
 
             let totalSeconds = 0;
@@ -724,10 +750,20 @@
                 if (cat) catsCount[cat] = (catsCount[cat] || 0) + 1;
             });
 
+            // 2. Tempo total formatado
             valTotalTime.textContent = formatTotalTime(totalSeconds);
 
-            topClippersData = Object.entries(clippersCount).sort((a, b) => b[1] - a[1]).slice(0, 10);
-            topCatsData = Object.entries(catsCount).sort((a, b) => b[1] - a[1]).slice(0, 10);
+            // NOVO: Calcula o tamanho das chaves únicas dos objetos
+            const totalUniqueUsers = Object.keys(clippersCount).length;
+            const totalUniqueCats = Object.keys(catsCount).length;
+
+            // Injeta os novos valores nos elementos correspondentes
+            valTotalUsers.textContent = totalUniqueUsers;
+            valTotalCats.textContent = totalUniqueCats;
+
+            // Ordenações dos dados brutos sem corte (exibe ranking geral de ponta a ponta)
+            topClippersData = Object.entries(clippersCount).sort((a, b) => b[1] - a[1]);
+            topCatsData = Object.entries(catsCount).sort((a, b) => b[1] - a[1]);
 
             drawLeaderboard();
         }
@@ -747,7 +783,6 @@
             }
         });
 
-        // Alternadores (Tabs)
         tabClippers.addEventListener('click', () => {
             activeTab = 'clippers';
             tabClippers.classList.add('active');
@@ -789,16 +824,14 @@
                 return 0; 
             });
 
-            // NOVO: Lógica dos 3 Segundos Oculta/Exibe texto de contagem
-            clipCountSpan.style.opacity = '0'; // Esconde na hora se alguma tecla for clicada
-            clearTimeout(searchTimeout); // Zera o relógio para começar a contar do 0
+            clipCountSpan.style.opacity = '0'; 
+            clearTimeout(searchTimeout); 
 
             if (searchInput.value.trim() !== '') {
-                // Se ainda tiver texto, ele espera 3 segundos 
                 searchTimeout = setTimeout(() => {
                     clipCountSpan.textContent = `${filteredClips.length} encontrados`;
                     clipCountSpan.style.opacity = '1';
-                }, 3000); // 3000ms = 3 segundos
+                }, 3000); 
             }
 
             clipGrid.innerHTML = '';
@@ -818,7 +851,6 @@
                 card.target = "_blank"; 
                 card.className = 'card';
 
-                // NOVO: Trocado "Clipper:" para "Clipado por:" 
                 card.innerHTML = `
                     <div class="card-thumb">
                         <img src="${thumb}" alt="Thumbnail">
